@@ -24,6 +24,7 @@ end
 local appBindings = {
 	H = "Google Chrome",
 	E = "Microsoft Edge",
+	U = "Microsoft Edge Beta",
 	G = "Ghostty",
 	M = "Mail",
 	T = "Microsoft Teams",
