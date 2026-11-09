@@ -267,3 +267,58 @@ bind("9", "Show this shortcut list", function()
 		helpTimer = nil
 	end)
 end)
+
+-- Fallback for unassigned letters: meh+<letter> activates a running app whose name starts
+-- with that letter; repeated presses cycle through all matching apps (sorted by name).
+local function activateByFirstLetter(letter)
+	local matches = {}
+	for _, app in ipairs(hs.application.runningApplications()) do
+		local name = app:name()
+		if app:kind() == 1 and name and name:sub(1, 1):lower() == letter then
+			matches[#matches + 1] = app
+		end
+	end
+	if #matches == 0 then
+		hs.alert.show("No running app starting with " .. letter:upper(), 0.8)
+		return
+	end
+	table.sort(matches, function(a, b)
+		local na, nb = a:name():lower(), b:name():lower()
+		if na ~= nb then
+			return na < nb
+		end
+		return a:pid() < b:pid()
+	end)
+
+	local front = hs.application.frontmostApplication()
+	local nextIdx = 1
+	for i, app in ipairs(matches) do
+		if front and app:pid() == front:pid() then
+			nextIdx = (i % #matches) + 1
+			break
+		end
+	end
+	local target = matches[nextIdx]
+	if target:isHidden() then
+		target:unhide()
+	end
+	target:activate()
+end
+
+local taken = {}
+for _, s in ipairs(shortcuts) do
+	taken[s.key:lower()] = true -- includes keys added via describe() in extensions.setup
+end
+local letterCount = 0
+for byte = string.byte("a"), string.byte("z") do
+	local letter = string.char(byte)
+	if not taken[letter] and not ignored[letter] then
+		hs.hotkey.bind(mehModifier, letter, function()
+			activateByFirstLetter(letter)
+		end)
+		letterCount = letterCount + 1
+	end
+end
+if letterCount > 0 then
+	describe("A-Z", "Running app by first letter (unassigned letters, repeat to cycle)")
+end
