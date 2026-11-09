@@ -8,6 +8,9 @@ local sourceForKey = {
 	["v"] = "com.apple.keylayout.Ukrainian-PC",
 }
 
+hs.hotkey.bind(mehModifier, "2", hs.spotify.volumeDown)
+hs.hotkey.bind(mehModifier, "4", hs.spotify.volumeUp)
+
 local previousId
 for key, sourceID in pairs(sourceForKey) do
 	hs.hotkey.bind(mehModifier, key, function()
